@@ -11,9 +11,11 @@ services:
     container_name: amneziawg
     cap_add:
       - NET_ADMIN
-      # SYS_MODULE only needed if loading the amneziawg kernel module from inside the container.
-      # If the module is already loaded on the host, or you're using the userspace fallback, omit it.
-      - SYS_MODULE
+      # SYS_MODULE is NOT required for the kernel datapath — this container never
+      # calls modprobe; it expects the wireguard/amneziawg module to already be
+      # loaded on the host. Keep it only on minimal hosts that don't auto-load
+      # iptables NAT modules. Otherwise omit.
+      # - SYS_MODULE
     devices:
       - /dev/net/tun:/dev/net/tun
     environment:
@@ -50,13 +52,6 @@ services:
       # - AWG_I1=<b 0xc3><b 0x00000001><b 0x08><r 8><b 0x00><b 0x00><b 0x449e><r 4><r 1178>
     volumes:
       - ./config:/config
-      # Bind the host's kernel module tree so the container can load the
-      # amneziawg kernel module via SYS_MODULE. Only useful if (a) the module
-      # is installed on the host (or DKMS-buildable) AND (b) you keep SYS_MODULE
-      # in cap_add. Without this mount, the in-kernel datapath is unreachable
-      # and the container silently falls back to userspace amneziawg-go.
-      # Safe to keep even if you don't have the module — it just becomes a no-op.
-      - /lib/modules:/lib/modules
     ports:
       # IMPORTANT: container always listens on 51820 internally regardless of SERVERPORT.
       # Map external SERVERPORT to internal 51820.
@@ -82,15 +77,18 @@ ports:
   # - "32948:32948/udp" # ❌ Wrong: container isn't listening on 32948
 ```
 
-### `/lib/modules` bind mount
+### Kernel datapath vs userspace fallback
 
-If the user wants the in-kernel AmneziaWG datapath (faster, lower CPU than the userspace `amneziawg-go` fallback), they need three things:
+The container picks its datapath at startup by running `ip link add dev test type wireguard`. If that succeeds, it uses the kernel datapath via netlink. If it fails, it falls back to userspace `amneziawg-go` (works fine for almost all use cases; slightly higher CPU).
 
-1. The `amneziawg` kernel module installed on the host (see [amneziawg-linux-kernel-module](https://github.com/amnezia-vpn/amneziawg-linux-kernel-module)).
-2. `SYS_MODULE` in `cap_add`.
-3. `/lib/modules:/lib/modules` bind mount — so the container can find the module to load.
+The container **does not load kernel modules itself** — it only checks whether they're already loaded. So the recipe for in-kernel datapath is:
 
-If any of the three is missing, the container falls back to userspace silently. That's almost always fine — only mention the kernel module path to users who explicitly care about CPU overhead or have many concurrent peers.
+1. On the **host**, install + load the `wireguard` kernel module (built-in to most modern kernels — usually nothing to do) or the `amneziawg` module (see [amneziawg-linux-kernel-module](https://github.com/amnezia-vpn/amneziawg-linux-kernel-module)).
+2. No special container config needed — `cap_add: NET_ADMIN` is sufficient.
+
+`SYS_MODULE` is **not** required to use the kernel datapath. The init script even prints a message recommending you drop it once the kernel module is active. The only edge case where `SYS_MODULE` may still be useful is on minimal hosts that don't auto-load iptables NAT modules — in that case keep it. Otherwise, omit it.
+
+A `/lib/modules:/lib/modules` bind mount is **not needed** for this container at all (nothing inside ever calls `modprobe`). Some compose examples in the wild include it — that's a copy-paste from generic kernel-module-loading patterns and is a no-op here.
 
 ### `PUID`/`PGID`
 
