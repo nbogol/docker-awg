@@ -49,7 +49,7 @@ ARG AMNEZIAWG_GO_VERSION
 ARG AMNEZIAWG_TOOLS_VERSION
 LABEL build_version="AmneziaWG version:- ${VERSION} Build-date:- ${BUILD_DATE}"
 LABEL maintainer="AYastrebov"
-LABEL org.opencontainers.image.source="https://github.com/AYastrebov/docker-amneziawg"
+LABEL org.opencontainers.image.source="https://github.com/nbogol/docker-awg"
 LABEL org.opencontainers.image.description="AmneziaWG VPN container (amneziawg-tools ${AMNEZIAWG_TOOLS_VERSION}, amneziawg-go ${AMNEZIAWG_GO_VERSION})"
 LABEL org.opencontainers.image.licenses="MIT"
 LABEL org.opencontainers.image.version="${AMNEZIAWG_TOOLS_VERSION}"

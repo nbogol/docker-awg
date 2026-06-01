@@ -8,8 +8,8 @@
 
 services:
   amneziawg:
-    image: ghcr.io/ayastrebov/docker-amneziawg:latest
-    container_name: amneziawg
+    image: ghcr.io/nbogol/docker-awg:latest
+    container_name: awg
     # Uncomment to build locally instead of using pre-built image
     # build:
     #   context: .
