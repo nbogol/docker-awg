@@ -10,7 +10,8 @@ Build and push to GitHub Docker Repo for multiarch:
 
 ```aiignore
 DATE_TAG=$(date +%Y%m%d)
-docker buildx build --builder multiarch --platform linux/amd64,linux/arm64 -t ghcr.io/nbogol/docker-awg:latest -t ghcr.io/nbogol/docker-awg:${DATE_TAG} --push .
+INAME=ghcr.io/nbogol/docker-awg
+docker buildx build --builder multiarch --platform linux/amd64,linux/arm64 -t ${INAME}:latest -t ${INAME}:${DATE_TAG} --push .
 ```
 
 
