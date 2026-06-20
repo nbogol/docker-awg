@@ -1,3 +1,25 @@
+
+### Install AWG kernel
+
+https://github.com/amnezia-vpn/amneziawg-linux-kernel-module
+
+Ubuntu
+Open Terminal and proceed with following instructions:
+
+(Optionally) Upgrade your system to latest packages including latest available kernel by running 
+```
+apt-get full-upgrade. After kernel upgrade reboot is required.
+```
+
+Ensure that you have source repositories configured for APT - run vi /etc/apt/sources.list and make sure that there is at least one line starting with deb-src is present and uncommented.
+
+Install pre-requisites - run sudo apt install -y software-properties-common python3-launchpadlib gnupg2 linux-headers-$(uname -r).
+
+Run sudo add-apt-repository ppa:amnezia/ppa.
+
+Finally execute sudo apt-get install -y amneziawg.
+```
+
 ### Build and push to GitHub multi-arch images
 
 Create multi-arch builder - one time deal:
